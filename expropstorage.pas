@@ -19,6 +19,13 @@ type
   public
     procedure StorageNeeded(ReadOnly: Boolean); virtual; abstract;
     procedure FreeStorage; virtual; abstract;
+
+    function ReadString(const ASection, AIdent: String; ADefaulValue: String = ''): String;
+    function ReadInteger(const ASection, AIdent: String; ADefaulValue: Integer = 0): Integer;
+    function ReadBoolean(const ASection, AIdent: String; ADefaulValue: Boolean = False): Boolean;
+    procedure WriteString(const ASection, AIdent: String; AValue: String);
+    procedure WriteInteger(const ASection, AIdent: String; AValue: Integer);
+    procedure WriteBoolean(const ASection, AIdent: String; AValue: Boolean);
   end;
 
   { TExPropStorage }
@@ -26,6 +33,7 @@ type
   TExPropStorage = class(TFormPropertyStorage)
   private
     FDataProvider: TExPropDataProvider;
+    FSectionPrefix: String;
   protected
     procedure DoEraseSections(const ARootSection: String); override;
     function DoReadString(const Section, Ident, DefaultValue: string): string;
@@ -37,6 +45,7 @@ type
   published
     property Active;
     property DataProvider: TExPropDataProvider read FDataProvider write FDataProvider;
+    property SectionPrefix: String read FSectionPrefix write FSectionPrefix;
     property StoredValues;
     property OnSavingProperties;
     property OnSaveProperties;
@@ -86,6 +95,44 @@ implementation
 
 uses
   variants;
+
+{ TExPropDataProvider }
+
+function TExPropDataProvider.ReadString(const ASection, AIdent: String;
+  ADefaulValue: String): String;
+begin
+  Result := DoReadString(ASection, AIdent, ADefaulValue);
+end;
+
+function TExPropDataProvider.ReadInteger(const ASection, AIdent: String;
+  ADefaulValue: Integer): Integer;
+begin
+  Result := StrToIntDef(DoReadString(ASection, AIdent, ''), ADefaulValue);
+end;
+
+function TExPropDataProvider.ReadBoolean(const ASection, AIdent: String;
+  ADefaulValue: Boolean): Boolean;
+begin
+  Result := StrToBoolDef(DoReadString(ASection, AIdent, ''), ADefaulValue);
+end;
+
+procedure TExPropDataProvider.WriteString(const ASection, AIdent: String;
+  AValue: String);
+begin
+  DoWriteString(ASection, AIdent, AValue);
+end;
+
+procedure TExPropDataProvider.WriteInteger(const ASection, AIdent: String;
+  AValue: Integer);
+begin
+  DoWriteString(ASection, AIdent, IntToStr(AValue));
+end;
+
+procedure TExPropDataProvider.WriteBoolean(const ASection, AIdent: String;
+  AValue: Boolean);
+begin
+  DoWriteString(ASection, AIdent, BoolToStr(AValue));
+end;
 
 { TExPSDataSetProvider }
 
@@ -209,14 +256,14 @@ end;
 procedure TExPropStorage.DoEraseSections(const ARootSection: String);
 begin
   if Assigned(FDataProvider) then
-    FDataProvider.DoEraseSections(ARootSection);
+    FDataProvider.DoEraseSections(FSectionPrefix + ARootSection);
 end;
 
 function TExPropStorage.DoReadString(const Section, Ident, DefaultValue: string
   ): string;
 begin
   if Assigned(FDataProvider) then
-    Result := FDataProvider.DoReadString(Section, Ident, DefaultValue)
+    Result := FDataProvider.DoReadString(FSectionPrefix + Section, Ident, DefaultValue)
   else
     Result := DefaultValue;
 end;
@@ -224,7 +271,7 @@ end;
 procedure TExPropStorage.DoWriteString(const Section, Ident, Value: string);
 begin
   if Assigned(FDataProvider) then
-    FDataProvider.DoWriteString(Section, Ident, Value);
+    FDataProvider.DoWriteString(FSectionPrefix + Section, Ident, Value);
 end;
 
 procedure TExPropStorage.StorageNeeded(ReadOnly: Boolean);
@@ -235,7 +282,7 @@ end;
 
 procedure TExPropStorage.FreeStorage;
 begin
-  if Assigned(FDataProvider) then
+  if not (csDestroying in ComponentState) and  Assigned(FDataProvider) then
     FDataProvider.FreeStorage;
 end;
 

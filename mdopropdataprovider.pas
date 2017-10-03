@@ -126,9 +126,11 @@ begin
   else
   begin
     FQ.Close;
-    FQ.SQL.Text := Format(UPD_SQL, [FTableName, FSectionField, FIdentField, FValueField]);
+    FQ.SQL.Text := Format(INS_SQL, [FTableName, FSectionField, FIdentField, FValueField]);
   end;
   FQ.ParamByName('VVALUE').AsString := Value;
+  FQ.ParamByName('VSECTION').AsString := Section;
+  FQ.ParamByName('VIDENT').AsString := Ident;
   FQ.ExecQuery;
   FQ.Transaction.Commit;
   FQ.Free;
