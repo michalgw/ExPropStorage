@@ -45,7 +45,7 @@ implementation
 
 procedure TMDOPropDataProvider.DoEraseSections(const ARootSection: String);
 const
-  DEL_SQL = 'delete from %s where %s = :VSECTION';
+  DEL_SQL = 'delete from %s where %s like :VSECTION';
 var
   FQ: TMDOSQL;
 begin
