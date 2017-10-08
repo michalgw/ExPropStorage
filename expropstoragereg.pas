@@ -14,6 +14,8 @@ implementation
 uses
   ExPropStorage;
 
+{$R expropstoragepkg.res}
+
 procedure Register;
 begin
   RegisterComponents('ExPropStorage', [TExPropStorage, TExPSDataSetProvider]);

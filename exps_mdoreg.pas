@@ -14,6 +14,8 @@ implementation
 uses
   MDOPropDataProvider;
 
+{$R exps_mdo.res}
+
 procedure Register;
 begin
   RegisterComponents('ExPropStorage', [TMDOPropDataProvider]);
